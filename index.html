@@ -1,0 +1,870 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>나만의 풍속도</title>
+<style>
+:root{color-scheme:light;--paper:#f4eee2;--panel:#fffaf0;--ink:#302c25;--muted:#665d50;--line:#d8cbbb;--red:#8b4036;--green:#3c594f}
+*{box-sizing:border-box}
+body{margin:0;height:100vh;height:100dvh;display:grid;grid-template-rows:auto minmax(0,1fr);color:var(--ink);background:var(--paper);font:16px/1.45 "Malgun Gothic",system-ui,sans-serif}
+header{border-bottom:1px solid var(--line)}
+.head,main{width:100%;max-width:1320px;margin-inline:auto;padding-inline:clamp(10px,2.2vw,24px)}
+.head{display:flex;align-items:center;gap:12px;min-height:64px}
+.seal{display:grid;place-items:center;width:43px;height:43px;flex:none;background:var(--red);color:white;border-radius:3px;outline:1px solid #ffffff80;outline-offset:-5px;font:24px "Batang",serif}
+h1,h2,p{margin:0}
+h1{font:700 clamp(22px,3vw,30px)/1.2 "Batang",serif;letter-spacing:-.06em}
+.kicker{font-size:11px;color:var(--red);font-weight:bold;letter-spacing:.07em;margin-bottom:2px}
+.head button{margin-left:auto;white-space:nowrap}
+main{display:grid;grid-template-columns:clamp(218px,24vw,294px) minmax(0,1fr);grid-template-rows:minmax(0,1fr);gap:clamp(8px,1.6vw,20px);padding-block:10px;align-items:start;min-height:0;container-type:inline-size}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;min-width:0}
+.controls{padding:12px;display:grid;gap:8px}
+h2{font-size:17px;letter-spacing:-.04em}
+small,.hint{font-size:13px;color:var(--muted)}
+fieldset{padding:0;margin:0;border:0;min-width:0}
+legend,label{font-size:13px;font-weight:bold}
+.options{display:grid;gap:6px;min-width:0}
+.options label{display:grid;gap:4px}
+.segment{display:flex;gap:6px;margin-top:4px}
+.segment label{position:relative;flex:1;display:block}
+.segment input{position:absolute;opacity:0}
+.segment span,button,select{font:inherit;border:1px solid var(--line);border-radius:7px;background:#fffdf8;color:var(--ink);min-height:44px}
+.segment span{display:grid;place-items:center;cursor:pointer}
+.segment input:checked+span{background:#e4ebe4;border-color:var(--green);color:#273f37;font-weight:bold}
+:focus-visible,.segment input:focus-visible+span{outline:3px solid #a2601f;outline-offset:2px}
+select{padding:6px 8px;width:100%;min-width:0;max-width:100%}
+button{padding:7px 13px;cursor:pointer;font-weight:bold;font-size:14px}
+button:hover:not(:disabled){background:#f2e8d8}
+button:disabled{opacity:.5;cursor:default}
+button.primary{background:var(--green);border-color:var(--green);color:white}
+button.primary:hover:not(:disabled){background:#294439}
+#save{background:var(--red);border-color:var(--red);color:white}
+#save:hover:not(:disabled){background:#733329}
+.preview{min-width:0;background:#f5eddd;border:1px solid var(--line);border-radius:8px;text-align:center}
+.preview svg{display:block;width:100%;height:clamp(52px,calc(100dvh - 423px),142px)}
+.preview p{padding:0 5px 5px;overflow-wrap:anywhere}
+#add{width:100%}
+.asset-note{display:block}
+.scene{width:min(100%,calc(67% + 8px));height:min(100%,calc(67cqw - 72px));display:grid;grid-template-rows:auto minmax(0,1fr) auto}
+.bar{display:flex;gap:6px 10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:7px 10px;min-width:0}
+.bar label{display:flex;gap:6px;align-items:center;max-width:100%}
+.bar select{width:auto}
+.board{background:#e7dece;padding:7px;min-height:0;min-width:0;container-type:size;display:grid;place-items:center}
+#stage{width:min(100cqw,100cqh);height:auto;display:block;aspect-ratio:1;outline:1px solid #bba98e;box-shadow:0 4px 14px #4a35201d;background:repeating-conic-gradient(#ddd4c5 0% 25%,#f6efe3 0% 50%) 0/20px 20px;touch-action:none;user-select:none}
+#people>g{cursor:grab}
+#stage.dragging #people>g{cursor:grabbing}
+.tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tools button{font-size:13px;padding-inline:9px}
+.footer{border-top:1px solid var(--line)}
+#status{overflow-wrap:anywhere}
+@media(max-width:980px){
+  .scene{height:100%}
+  .scene .bar .hint:not(#count):not(#status){display:none}
+}
+@media(max-height:650px){
+  .head{min-height:54px}
+  .controls{gap:5px;padding:8px}
+  .options{gap:4px}
+  .options label{gap:2px}
+  .segment span,button,select{min-height:36px}
+  #editHint,.asset-note{display:none}
+  .bar{padding:5px 8px}
+}
+@media(max-width:760px){
+  .head{gap:8px;min-height:54px}
+  .seal{width:36px;height:36px}
+  .head button{padding-inline:8px}
+  main{grid-template-columns:minmax(158px,33%) minmax(0,1fr);gap:7px;padding-block:6px}
+  .scene{width:100%}
+  .kicker{letter-spacing:0}
+}
+@media(max-width:760px) and (orientation:portrait){
+  main{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);align-items:stretch}
+  .controls{grid-template-columns:minmax(0,1fr) minmax(70px,29%);gap:5px 8px;padding:7px}
+  .controls>div:first-child,.controls>small,#add{grid-column:1/-1}
+  .controls>small,#editHint{display:none}
+  .preview{align-self:stretch;display:grid;align-content:center}
+  .preview svg{height:clamp(58px,16dvh,105px)}
+  .segment span,button,select{min-height:36px}
+  .bar{padding:5px 8px}
+}
+@media(max-height:460px) and (orientation:landscape){
+  .head{min-height:44px}
+  .seal{width:32px;height:32px}
+  .kicker,.preview p,.scene .bar .hint:not(#count):not(#status){display:none}
+  .segment span,button,select{min-height:30px;padding-block:3px}
+  .preview svg{height:clamp(35px,calc(100dvh - 270px),90px)}
+  .controls{gap:4px}
+}
+</style>
+</head>
+<body>
+<header><div class="head">
+  <div class="seal" aria-hidden="true">畫</div>
+  <div><p class="kicker">중학교 미술 · 풍속화 작업실</p><h1>나만의 풍속도</h1></div>
+  <button id="save" type="button">PNG 저장</button>
+</div></header>
+<main>
+  <aside class="panel controls" aria-labelledby="characterTitle">
+    <div><h2 id="characterTitle">01. 인물 꾸미기</h2><p id="editHint" class="hint">동작과 한복을 골라 보세요.</p></div>
+    <div class="options">
+      <fieldset><legend>인물</legend><div class="segment">
+        <label><input type="radio" name="person" value="man" checked><span>남자</span></label>
+        <label><input type="radio" name="person" value="woman"><span>여자</span></label>
+      </div></fieldset>
+      <label for="pose">동작<select id="pose"></select></label>
+      <label for="outfit">의상<select id="outfit"></select></label>
+    </div>
+    <div class="preview"><svg id="preview" viewBox="-103 -155 206 170" role="img" aria-label="인물 미리보기"></svg><p id="previewLabel" class="hint"></p></div>
+    <button id="add" class="primary" type="button">＋ 그림에 인물 추가</button>
+    <small id="assetNote" class="asset-note"></small>
+  </aside>
+  <section class="panel scene" aria-labelledby="sceneTitle">
+    <div class="bar">
+      <div><h2 id="sceneTitle">02. 장면 만들기</h2><p class="hint">인물을 끌어 옮기세요. 선택한 인물은 방향키로도 움직일 수 있어요.</p></div>
+      <label for="background">배경<select id="background">
+        <option value="paper">한지</option>
+        <option value="palace">궁궐</option><option value="school">서당</option><option value="hanok">한옥</option>
+        <option value="wall">돌담길</option><option value="market">장터</option>
+        <option value="bridge">개울가 돌다리</option><option value="rain">비 오는 골목</option>
+        <option value="yard">마루 앞 마당</option><option value="bench">나무 그늘 아래 평상</option>
+        <option value="pond">연못가 정자</option><option value="tavern">주막</option>
+        <option value="room">한지 창호가 있는 방</option><option value="cowshed">소가 있는 외양간</option>
+        <option value="feast">잔칫집</option><option value="clear">투명</option>
+      </select></label>
+    </div>
+    <div class="board">
+      <svg id="stage" viewBox="0 0 900 900" xmlns="http://www.w3.org/2000/svg" aria-label="풍속도 작업 영역">
+        <g id="back" aria-hidden="true"></g>
+        <g id="people"></g>
+        <g id="selection" pointer-events="none" aria-hidden="true"></g>
+      </svg>
+    </div>
+    <div class="bar footer">
+      <div><p id="count" class="hint"></p><p id="status" class="hint" role="status"></p></div>
+      <div class="tools" aria-label="선택한 인물 편집">
+        <button id="flip" type="button">좌우 반전</button>
+        <button id="front" type="button">맨 앞으로</button>
+        <button id="remove" type="button">인물 지우기</button>
+      </div>
+    </div>
+  </section>
+</main>
+<script>
+"use strict";
+// Pose coordinates are local to the character. Feet sit near the origin.
+const upright = {
+  head:[0,-111,0], hip:[0,-57], shoulder:[0,-89],
+  arms:[[-25,-68,-24,-52],[24,-68,24,-51]],
+  legs:[[-14,-29,-16,-7],[14,-29,16,-7]]
+};
+const seated = {
+  head:[-5,-83,3], hip:[-7,-27], shoulder:[-7,-61], seated:true,
+  arms:[[-29,-37,-29,-20],[15,-37,17,-19]]
+};
+const poses = {
+  stand:{label:"서기"},
+  walk:{label:"걷기",head:[5,-110,8],shoulder:[1,-88],arms:[[-27,-72,-40,-58],[25,-71,43,-64]],legs:[[-24,-30,-39,-8],[23,-37,39,-8]]},
+  run:{label:"뛰기",head:[19,-114,15],shoulder:[13,-93],hip:[-1,-60],arms:[[-18,-75,-38,-81],[35,-81,46,-102]],legs:[[-32,-35,-57,-53],[30,-48,45,-13]]},
+  sit:{...seated,label:"앉기"},
+  lie:{label:"누워있기",head:[-1,-113,10],arms:[[-24,-71,-16,-55],[22,-70,10,-63]],legs:[[-15,-31,-13,-7],[14,-31,7,-9]],reclining:true},
+  bow:{label:"인사하기",head:[36,-94,39],shoulder:[13,-83],hip:[-13,-52],armRoots:[[22,-79],[7,-78]],arms:[[31,-64,23,-54],[8,-56,19,-52]],legs:[[-20,-31,-22,-7],[-8,-29,-6,-7]]},
+  read:{...seated,label:"책 읽기",head:[-4,-82,17],arms:[[-20,-36,1,-47],[14,-45,31,-50]],prop:"book"},
+  write:{...seated,label:"필기하기",head:[2,-79,24],shoulder:[-4,-56],arms:[[-18,-39,8,-32],[16,-41,31,-39]],prop:"desk"},
+  raise:{label:"손들기",head:[-1,-112,-8],arms:[[-24,-108,-30,-135],[22,-68,24,-52]]},
+  present:{label:"발표하기",head:[1,-112,-4],arms:[[-24,-71,-12,-62],[34,-76,52,-87]],prop:"notes"},
+  doze:{...seated,label:"졸기",head:[10,-71,30],shoulder:[-3,-54],arms:[[-21,-38,2,-31],[22,-34,24,-58]],prop:"table"},
+  sweep:{label:"청소하기",head:[19,-105,21],shoulder:[10,-85],hip:[0,-57],armRoots:[[-3,-78],[23,-79]],arms:[[-12,-61,5,-55],[35,-67,26,-78]],legs:[[-19,-33,-17,-7],[20,-29,35,-7]],prop:"broom"},
+  bag:{label:"가방 메기",head:[8,-111,9],shoulder:[5,-88],arms:[[-29,-75,-15,-85],[30,-69,32,-54]],legs:[[-20,-32,-29,-7],[21,-34,32,-7]],prop:"bag"},
+  coffee:{label:"커피 마시기",head:[1,-112,-6],arms:[[-23,-69,-21,-54],[36,-73,33,-89]],prop:"cup"},
+  phone:{label:"휴대폰 보기(세로)",head:[5,-110,17],arms:[[-23,-70,-16,-54],[28,-70,35,-89]],prop:"phone"},
+  landscape:{label:"휴대폰 게임·영상 보기(가로)",head:[0,-106,4],armRoots:[[-15,-81],[15,-81]],arms:[[-27,-56,-17,-64],[27,-56,17,-64]],prop:"landscape"},
+  call:{label:"전화하기",head:[1,-112,-5],arms:[[-24,-70,-22,-55],[34,-84,22,-105]],prop:"call"},
+  photo:{label:"사진 찍기",head:[1,-111,0],arms:[[-25,-79,-12,-103],[25,-80,14,-103]],prop:"camera"},
+  carry:{label:"물건 나르기",head:[9,-111,9],shoulder:[4,-87],arms:[[-28,-70,-16,-53],[36,-69,30,-53]],legs:[[-21,-30,-31,-7],[21,-32,33,-7]],prop:"box"},
+  laptop:{...seated,label:"노트북 사용하기",head:[-2,-81,15],shoulder:[-6,-59],arms:[[-24,-38,13,-33],[15,-43,30,-35]],prop:"laptop"},
+  market:{label:"장보기",head:[3,-112,8],arms:[[-24,-70,-22,-54],[30,-67,39,-55]],legs:[[-21,-32,-29,-8],[19,-29,29,-7]],prop:"basket"},
+  wave:{label:"손 흔들기",head:[-3,-111,-7],arms:[[-37,-89,-46,-112],[24,-68,24,-52]],prop:"wave"},
+  dance:{label:"춤추기 (탈춤풍)",head:[0,-105,-10],shoulder:[3,-81],hip:[7,-49],armRoots:[[-10,-80],[16,-76]],arms:[[-35,-96,-47,-123],[39,-75,57,-65]],legs:[[-23,-43,-36,-29],[18,-25,11,-7]]},
+  dogwalk:{label:"반려동물과 산책하기",head:[6,-108,14],arms:[[-24,-69,-22,-53],[32,-67,42,-56]],legs:[[-17,-29,-23,-7],[18,-29,26,-7]],prop:"dog"},
+  umbrella:{label:"우산 쓰기",head:[1,-108,4],arms:[[-23,-67,-22,-52],[30,-73,38,-88]],prop:"umbrella"},
+  lunch:{...seated,label:"급식 먹기",head:[-2,-82,12],arms:[[-21,-39,-7,-33],[24,-45,13,-64]],prop:"lunch"},
+  talk:{label:"친구와 이야기하기 (1) · 말하기",head:[4,-111,6],arms:[[-24,-70,-22,-51],[29,-71,47,-81]],profile:1},
+  listen:{label:"친구와 이야기하기 (2) · 듣기",head:[-8,-109,-9],shoulder:[-3,-88],arms:[[-26,-70,-23,-53],[21,-69,19,-52]],profile:-1},
+  paint:{...seated,label:"그림 그리기",head:[5,-80,21],shoulder:[-3,-57],arms:[[-20,-38,7,-30],[22,-40,33,-38]],prop:"paint"},
+  guitar:{...seated,label:"기타 연주하기",head:[1,-83,12],shoulder:[-3,-60],armRoots:[[-17,-55],[11,-55]],arms:[[-26,-41,-2,-36],[24,-36,38,-48]],prop:"guitar",instrument:true},
+  piri:{...seated,label:"피리 연주하기",head:[1,-83,4],shoulder:[-3,-61],armRoots:[[-16,-56],[11,-56]],arms:[[-21,-38,15,-45],[27,-44,10,-59]],prop:"piri",instrument:true},
+  janggu:{...seated,label:"장구 치기",head:[-1,-83,8],shoulder:[-3,-61],armRoots:[[-17,-55],[10,-55]],arms:[[-26,-45,-30,-45],[25,-45,34,-57]],prop:"janggu",instrument:true},
+  tired:{label:"지쳐서 걷기",head:[20,-99,24],shoulder:[12,-81],hip:[-5,-55],arms:[[-19,-62,-19,-44],[28,-63,34,-43]],legs:[[-23,-30,-35,-8],[14,-26,30,-7]]}
+};
+const outfits = {
+  white:{label:"흰 저고리·바지 / 치마",top:"#f4ebd9",bottom:"#dcd0b9"},
+  skirt:{label:"저고리·치마",top:"#d9b76e",bottom:"#af625d",skirt:true},
+  vest:{label:"배자",top:"#eddfc7",bottom:"#bdc5ac",over:"#637e72"},
+  coat:{label:"두루마기",top:"#80999a",bottom:"#ddd5c3",coat:true},
+  short:{label:"짧은 저고리·바지",top:"#c48a77",bottom:"#8d9c93",short:true},
+  work:{label:"무명 작업복",top:"#c5ae89",bottom:"#947e63",work:true},
+  saekdong:{label:"색동저고리",top:"#d5ad6f",bottom:"#ad6972",sleeveBands:["#ad6972","#628082","#dbbb70","#7b8f64","#b96956"],skirt:true,short:true},
+  dopo:{label:"도포",top:"#e1ddd2",bottom:"#c9c6b7",coat:true,sleeveWidth:16,cuff:12,sash:"#925650"},
+  cheollik:{label:"철릭",top:"#527285",bottom:"#527285",pleats:true,sleeveWidth:12,sash:"#3a5059"},
+  jangot:{label:"장옷",top:"#7e966a",bottom:"#e0c4a2",coat:true,trim:"#754653",sleeveBands:["#754653","#eee1c8"]},
+  quilt:{label:"누비옷",top:"#9a8a78",bottom:"#797c76",quilt:true,sleeveWidth:11},
+  ceremony:{label:"전통 예복 (녹원삼)",top:"#567958",bottom:"#a85b53",coat:true,skirt:true,sleeveWidth:16,cuff:14,sleeveBands:["#8b5149","#dfbd6f","#f6eddc"],sash:"#9d4947"}
+};
+const ink = "#463b32";
+const skin = "#e8bc95";
+const line = (d, color=ink, width=1.35) => '<path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="'+width+'"/>';
+const shape = (d, fill) => '<path d="'+d+'" fill="'+fill+'"/>';
+function limb(start, bend, end, width, cuff, color, bands, openRoot=false) {
+  const normal=(a,b)=>{
+    const dx=b[0]-a[0], dy=b[1]-a[1], length=Math.hypot(dx,dy)||1;
+    return [-dy/length,dx/length];
+  };
+  const upper=normal(start,bend), lower=normal(bend,end);
+  const offset=(point,side,amount)=>point.map((value,i)=>value+side[i]*amount);
+  const middle=(a,b)=>a.map((value,i)=>(value+b[i])/2);
+  const edge=direction=>{
+    const root=offset(start,upper,direction*width);
+    const jointIn=offset(bend,upper,direction*width*1.06);
+    const jointOut=offset(bend,lower,direction*width*1.06);
+    const tip=offset(end,lower,direction*cuff);
+    return {root,joint:middle(jointIn,jointOut),before:middle(root,jointIn),after:middle(jointOut,tip),tip};
+  };
+  const a=edge(1), b=edge(-1);
+  const outline='M'+a.root+' L'+a.before+' Q'+a.joint+' '+a.after+' L'+a.tip+
+    ' L'+b.tip+' L'+b.after+' Q'+b.joint+' '+b.before+' L'+b.root;
+  const fill=openRoot?'<g stroke="none">'+shape(outline+' Z',color)+'</g>':shape(outline+' Z',color);
+  if(!bands)return openRoot?fill+line(outline,ink,1.45):fill;
+  const along=(edge,fraction)=>edge.after.map((value,i)=>value+(edge.tip[i]-value)*fraction);
+  const sections=bands.map((fill,i)=>{
+    const from=i/bands.length, to=(i+1)/bands.length;
+    return shape('M'+along(a,from)+' L'+along(a,to)+' L'+along(b,to)+' L'+along(b,from)+' Z',fill);
+  }).join("");
+  return fill+'<g stroke="none">'+sections+'</g>'+line(outline,ink,1.45);
+}
+const props = {
+  bag:shape('M-12 -82 Q-41 -92 -43 -61 L-39 -47 Q-25 -39 -13 -51 Z','#99714f')+line('M-41 -65 Q-31 -58 -17 -65'),
+  book:shape('M-5 -52 Q5 -55 14 -47 Q23 -57 37 -55 L33 -42 Q23 -42 14 -36 Q6 -42 -2 -42 Z','#f6e4b8')+line('M14 -47 L14 -36 M0 -49 L8 -46 M20 -47 L30 -51'),
+  cup:shape('M21 -99 H39 L36 -79 H24 Z','#f2eee3')
+    +shape('M22.5 -94 H37.5 L35 -80.5 H25 Z','#a36c42')
+    +'<path d="M25 -95 l5 -1 2 4 -5 2 Z M32 -92 l4 1 -1 4 -4 -1 Z" fill="#f9e6c9" stroke-width=".65"/>'
+    +shape('M20 -101 H40 L39 -98 H21 Z','#faf5e9')
+    +line('M29 -101 L22 -109 L11 -104','#753e3d',1.7),
+  phone:'<rect x="30" y="-104" width="11" height="19" rx="2" fill="#566768" transform="rotate(-13 35 -91)"/>'+line('M34 -101 L38 -102','#e3e9e0'),
+  basket:shape('M24 -45 L54 -45 L49 -23 Q39 -19 29 -23 Z','#c9a46e')+line('M30 -46 Q38 -66 48 -46 M27 -38 H51 M29 -30 H50 M36 -44 L36 -24 M44 -44 L43 -24'),
+  table:shape('M-3 -32 L60 -32 L67 -24 H-10 Z M-5 -24 H1 L-2 -5 H-8 Z M56 -24 H62 L64 -5 H58 Z','#ad8663'),
+  desk:shape('M4 -34 L30 -37 L43 -32 L15 -28 Z','#fcf1da')+line('M29 -35 L33 -47','#5d392e',2),
+  laptop:shape('M9 -35 L43 -35 L53 -50 L25 -50 L16 -36 Z','#6d7776')+line('M9 -34 H44 M32 -43 H39','#e9dfce',1.2),
+  notes:shape('M-23 -73 L-5 -76 L0 -55 L-18 -52 Z','#f8ebcb')+line('M-18 -68 L-8 -70 M-16 -63 L-7 -65 M-15 -59 L-6 -61','#9b805f',.85),
+  broom:line('M42 -96 L-32 -13','#7b5b40',3)+shape('M-32 -19 L-26 -14 Q-28 -9 -25 -3 Q-37 3 -49 -4 Q-40 -11 -32 -19 Z','#bd9657')+line('M-37 -13 L-29 -8 M-37 -9 L-42 -3 M-33 -7 L-36 -2',ink,.8),
+  landscape:'<rect x="-17" y="-72" width="34" height="16" rx="2.5" fill="#536765"/><rect x="-13" y="-69" width="26" height="10" rx="1" fill="#9fb4a2"/>'+line('M-9 -65 H-5 M-7 -67 V-63 M7 -65 H10','#f4e6c9',1),
+  call:'<rect x="15" y="-116" width="10" height="20" rx="2" fill="#526566" transform="rotate(-12 20 -106)"/>'+line('M18 -113 L22 -114','#e8e0cc',.9),
+  camera:'<rect x="-14" y="-111" width="31" height="18" rx="3" fill="#596562"/><rect x="-8" y="-114" width="9" height="4" rx="1" fill="#596562"/><circle cx="2" cy="-102" r="6.4" fill="#b8c4b8"/><circle cx="2" cy="-102" r="3.8" fill="#46565a"/>',
+  box:shape('M-18 -68 H32 V-45 H-18 Z','#bc9060')+shape('M-18 -68 L-10 -75 H40 L32 -68 Z','#dec39b')+shape('M32 -68 L40 -75 V-52 L32 -45 Z','#987147')+line('M3 -73 H11 M4 -66 V-56','#e6cda7',1.5),
+  wave:line('M-56 -113 Q-60 -118 -56 -123 M-62 -111 Q-67 -119 -63 -126','#9b805f',1),
+  dog:line('M43 -57 Q47 -32 76 -24','#865e47',1.45)+
+    shape('M57 -18 Q47 -21 46 -30 Q44 -34 42 -30 Q40 -22 52 -14 Z','#b58c63')+
+    shape('M57 -20 Q68 -24 77 -22 Q85 -23 87 -14 L85 -9 L84 0 H79 L78 -9 L64 -9 L62 0 H57 L58 -11 Q53 -15 57 -20 Z','#bf966e')+
+    shape('M76 -24 Q83 -27 90 -19 L96 -13 Q100 -11 97 -7 L88 -8 Q80 -12 76 -24 Z','#d3ac83')+
+    shape('M77 -25 Q84 -27 86 -22 Q85 -17 82 -15 Q77 -17 77 -25 Z','#9d704e')+
+    line('M76 -23 L80 -15','#a7554b',2.7)+
+    '<circle cx="89" cy="-15" r="1.05" fill="#463b32" stroke="none"/><circle cx="97" cy="-10" r="1.5" fill="#463b32" stroke="none"/>'+
+    line('M93 0 q0 -5 -2 -7 M98 0 l3 -6','#788763',.9),
+  umbrella:line('M38 -142 V-82 Q38 -76 33 -77','#715b48',2.2)+
+    shape('M-23 -119 Q-3 -149 38 -150 Q79 -145 95 -118 Q82 -124 70 -118 Q53 -124 38 -117 Q22 -124 7 -118 Q-7 -125 -23 -119 Z','#af7465')+
+    line('M38 -150 Q16 -138 7 -118 M38 -150 Q59 -138 70 -118 M38 -150 V-117','#87564b',1.1),
+  lunch:shape('M-7 -40 H35 L47 -29 H4 Z','#8e9f94')+
+    shape('M1 -38 H13 L18 -34 H5 Z M20 -38 H33 L37 -34 H25 Z','#f2e7ce')+
+    shape('M9 -33 H34 L39 -30 H13 Z','#b78767')+
+    line('M13 -64 L8 -72','#6b7775',1.6)+
+    '<ellipse cx="6.5" cy="-74" rx="2.5" ry="3.4" transform="rotate(-32 6.5 -74)" fill="#d3d9cf"/>',
+  paint:shape('M-1 -25 L39 -36 L56 -12 L12 -3 Z','#aa8e68')+
+    shape('M3 -24 L37 -33 L50 -14 L14 -6 Z','#f5ecd8')+
+    line('M14 -13 Q19 -20 24 -16 Q28 -13 34 -21 M18 -10 Q24 -14 31 -13','#788c78',1.2)+
+    line('M37 -46 L26 -22','#775b49',1.5)+
+    shape('M26 -23 Q25 -20 23 -19 Q23 -23 26 -25 Z','#6f8072'),
+  guitar:'<g transform="translate(0 -36) rotate(-17)">'+
+    shape('M-25 -16 Q-13 -20 -5 -13 Q0 -8 7 -12 Q18 -16 23 -8 Q29 1 22 9 Q17 15 8 11 Q1 7 -6 13 Q-14 20 -25 16 Q-37 11 -36 0 Q-36 -11 -25 -16 Z','#cc9e63')+
+    shape('M11 -4 L59 -4 V4 H11 Z','#82634b')+
+    shape('M57 -5 L69 -7 L73 -4 V4 L69 7 L57 5 Z','#a77c55')+
+    '<circle cx="4" cy="0" r="6.2" fill="#6d5140"/><rect x="-20" y="-4.5" width="4" height="9" rx="1" fill="#79563f"/>'+
+    line('M-16 -1.7 H68 M-16 0 H68 M-16 1.7 H68','#efe1be',.55)+
+    line('M30 -4 V4 M39 -4 V4 M47 -4 V4 M54 -4 V4','#c2a583',.65)+
+    line('M60 -6 v-3 M65 -6 v-3 M69 -6 v-3 M60 6 v3 M65 6 v3 M69 6 v3',ink,.8)+'</g>',
+  piri:shape('M3 -73 L7 -74 L10 -64 L6 -63 Z','#9e784d')+
+    shape('M5 -65 L10 -67 L23 -27 Q21 -24 17 -25 Z','#c99f61')+
+    line('M8 -62 L12 -63 M18 -31 L22 -32','#8e6f4e',.95)+
+    '<path d="M10 -60 h.1 M12 -54 h.1 M14 -49 h.1 M16 -43 h.1 M18 -37 h.1 M20 -32 h.1" fill="none" stroke="#66513c" stroke-width="1.8"/>',
+  janggu:shape('M-33 -34 Q-19 -31 -10 -24 Q3 -18 15 -25 Q24 -31 38 -35 V-3 Q25 -4 14 -12 Q2 -18 -10 -12 Q-20 -4 -33 -3 Z','#a37558')+
+    '<ellipse cx="-34" cy="-18.5" rx="8.5" ry="17" fill="#e3d0a9"/><ellipse cx="39" cy="-19" rx="7.5" ry="17.5" fill="#e8d7b4"/>'+
+    line('M-31 -32 L38 -9 M-29 -25 L38 -16 M-28 -15 L38 -25 M-30 -8 L37 -32','#ebd8ad',1.25)+
+    line('M-3 -22 V-15 M7 -22 V-15','#6d5949',2)+
+    line('M-29 -47 L-41 -34','#806047',2.15)+
+    '<circle cx="-41" cy="-34" r="3.8" fill="#9d7756"/>'+
+    line('M34 -58 L43 -39','#856347',1.65)
+};
+// Final art can replace this renderer per character/pose/outfit combination.
+function character({person,pose,outfit}) {
+  const p={...upright,...poses[pose]}, o=outfits[outfit];
+  const [hx,hy,angle]=p.head, [x,y]=p.hip, [sx,sy]=p.shoulder;
+  const female=person==="woman", skirt=o.skirt||o.pleats||(female&&outfit==="white");
+  const bowing=pose==="bow";
+  const holding=pose==="landscape"||pose==="sweep"||p.instrument;
+  const dancing=pose==="dance";
+  const trousers=p.legs.map(([kx,ky,fx,fy],i)=>{
+    const foot=shape('M-7 0 q8 -5 14 0 q10 5 7 8 h-20 q-5 -3 -1 -8 Z','#54483b');
+    const shoe='<g transform="translate('+fx+' '+fy+')'+(dancing&&i===0?' rotate(-22) scale(-1 1)':'')+'">'+foot+'</g>';
+    const spacing=bowing?5:8;
+    return shoe+limb([x+(i?spacing:-spacing),y-7],[kx,ky],[fx,fy+1],o.work||bowing?11:14,7,o.bottom);
+  }).join("");
+  const foldedTrousers=shape('M-22 -26 Q-37 -27 -42 -15 Q-48 -2 -30 0 Q-10 3 12 -6 L19 -14 Q-7 -12 -12 -24 Z',o.bottom)
+    +shape('M6 -24 Q20 -31 32 -22 Q42 -14 35 -5 Q26 4 7 2 L-19 -2 Q-29 -5 -24 -11 Q-20 -14 -11 -13 L8 -13 Z',o.bottom)
+    +shape('M-22 -11 Q-29 -14 -32 -8 Q-34 -3 -25 -2 L-19 -2 Q-23 -6 -22 -11 Z','#54483b')
+    +line('M-39 -13 Q-36 -7 -29 -7 M28 -17 Q25 -11 14 -11',ink,.9);
+  const foldedSkirt=shape('M-23 -37 Q-6 -42 10 -36 Q20 -22 39 -12 Q48 -4 37 0 Q5 7 -43 0 Q-49 -4 -40 -13 Z',o.bottom)
+    +line('M-18 -30 Q-22 -13 -35 -3 M-6 -26 Q-8 -13 -18 -2 M6 -27 Q16 -11 32 -3',ink,.85);
+  const instrumentLap=skirt
+    ? shape('M-28 -39 Q-8 -45 15 -38 Q19 -30 28 -25 Q46 -14 41 -4 Q36 2 24 1 Q9 7 -7 4 Q-22 4 -28 0 Q-42 3 -44 -6 Q-45 -13 -35 -23 Q-30 -29 -28 -39 Z',o.bottom)
+      +line('M-23 -29 Q-30 -23 -32 -13 Q-33 -8 -38 -6 M11 -28 Q25 -23 27 -15 Q24 -8 14 -7 Q1 -6 -11 0 M-10 -24 Q-8 -17 2 -13',ink,.85)
+    : shape('M-28 -39 Q-7 -44 14 -38 Q20 -31 22 -18 L-30 -13 Z',o.bottom)
+      +shape('M-18 -27 Q-29 -29 -36 -19 Q-45 -11 -41 -4 Q-38 2 -30 1 Q-16 -1 -6 -8 L14 -12 Q22 -14 18 -20 Q14 -24 7 -22 L-13 -16 Q-13 -22 -18 -27 Z',o.bottom)
+      +shape('M-25 -10 Q-31 -12 -36 -8 Q-40 -4 -35 -1 Q-31 2 -24 1 L-17 -3 Z','#eee3ce')
+      +shape('M5 -29 Q18 -33 33 -22 Q44 -15 39 -6 Q33 4 14 5 Q-3 6 -26 1 Q-30 -4 -25 -9 Q-11 -9 3 -10 Q10 -12 17 -17 Q10 -21 5 -29 Z',o.bottom)
+      +line('M-35 -18 Q-33 -15 -28 -14 M32 -19 Q29 -15 25 -13',ink,.9);
+  const feet=p.legs.map(leg=>leg[2]);
+  const hem=Math.max(...p.legs.map(leg=>leg[3]));
+  const left=Math.min(x-25,...feet.map(n=>n-11)), right=Math.max(x+25,...feet.map(n=>n+11));
+  const drape=dancing
+    ? shape('M-9 -61 Q10 -65 25 -60 Q24 -32 39 -9 Q25 5 4 2 Q-16 -3 -48 -25 Q-27 -34 -19 -49 Z',o.bottom)
+      +line('M-3 -53 Q-15 -35 -35 -24 M8 -53 Q3 -23 -10 -9 M19 -52 Q19 -23 27 -4',ink,.9)
+    : shape('M'+(x-17)+' '+(y-13)+' Q'+(left+9)+' '+(y+5)+' '+left+' '+(hem+1)+' Q'+x+' '+(hem+12)+' '+right+' '+(hem+1)+' Q'+(right-9)+' '+(y+5)+' '+(x+17)+' '+(y-13)+' Z',o.bottom)
+      +line('M'+(x-7)+' '+(y-5)+' Q'+(x-15)+' '+(hem-11)+' '+(left+13)+' '+hem+' M'+(x+6)+' '+(y-5)+' Q'+(x+10)+' '+(hem-9)+' '+(right-15)+' '+hem,ink,.8);
+  const pleats=o.pleats&&dancing?line('M1 -52 Q-4 -32 -26 -16 M13 -52 Q11 -22 3 -2 M23 -50 Q24 -23 32 -9','#344e5b',.9):
+    o.pleats?[-2,-1,0,1,2].map(i=>{
+    const tip=p.seated?x+i*11:left+(right-left)*(i+3)/6;
+    return line('M'+(x+i*4)+' '+(y-5)+' Q'+(x+i*6)+' '+(hem-12)+' '+tip+' '+(hem+3),'#344e5b',.9);
+  }).join(""):"";
+  const sleeves=p.arms.map(([ex,ey,wx,wy],i)=>{
+    const root=p.armRoots?.[i]||[sx+(i?12:-12),sy+4], bend=[ex,ey];
+    const cuff=o.cuff||(o.work||o.short?5:7);
+    const dx=wx-ex, dy=wy-ey, length=Math.hypot(dx,dy)||1;
+    const end=[wx-dx/length*3,wy-dy/length*3];
+    const handAngle=Math.atan2(dy,dx)*180/Math.PI-90;
+    const hand='<ellipse cx="'+wx+'" cy="'+wy+'" rx="4.1" ry="5" transform="rotate('+handAngle+' '+wx+' '+wy+')" fill="'+skin+'"/>';
+    const inFront=holding||(bowing&&i===1);
+    const width=o.sleeveWidth||(o.coat?11:9);
+    const shoulderWidth=inFront?Math.min(width,11):dancing?Math.min(width,12):width;
+    const sleeve=limb(root,bend,end,shoulderWidth,cuff,o.top,o.sleeveBands,inFront);
+    return (holding&&!p.instrument)||bowing||dancing?sleeve:hand+sleeve;
+  });
+  const danceCloth=dancing
+    ? shape('M-44 -118 Q-51 -131 -65 -130 Q-76 -129 -91 -140 Q-86 -148 -79 -150 Q-66 -140 -56 -141 Q-46 -140 -51 -123 Z','#f5ead4')
+      +shape('M53 -64 Q66 -67 74 -59 Q81 -51 95 -55 L91 -44 Q76 -42 68 -51 Q62 -57 52 -58 Z','#f5ead4')
+      +line('M-85 -143 Q-74 -133 -63 -135 Q-53 -134 -48 -124 M60 -62 Q67 -61 73 -55 Q80 -48 91 -49','#ac9880',1)
+    :"";
+  const grips={
+    bow:shape('M18 -55 Q22 -59 26 -56 L30 -53 Q31 -50 28 -49 L24 -49 Q19 -46 16 -49 Q15 -52 18 -55 Z',skin)
+      +line('M21 -54 Q25 -54 27 -52',ink,.8),
+    landscape:shape('M-20 -68 Q-18 -71 -16 -68 L-13 -66 Q-11 -64 -14 -62 L-16 -62 Q-16 -58 -19 -59 Q-22 -61 -20 -68 Z M20 -68 Q18 -71 16 -68 L13 -66 Q11 -64 14 -62 L16 -62 Q16 -58 19 -59 Q22 -61 20 -68 Z',skin),
+    sweep:shape('M1 -56 Q3 -60 7 -59 Q11 -57 9 -54 L7 -51 Q3 -49 0 -52 Z M23 -81 Q26 -84 30 -82 Q33 -80 31 -77 L28 -74 Q23 -73 22 -77 Z',skin)
+      +line('M4 -55 L7 -54 M26 -79 L29 -78',ink,.75),
+    guitar:shape('M-7 -38 Q-3 -41 1 -38 L6 -34 Q8 -32 5 -31 L1 -33 Q0 -30 -3 -32 L-7 -34 Z M34 -47 Q34 -52 38 -54 Q42 -55 44 -52 L41 -50 L44 -48 Q43 -45 40 -46 L37 -43 Z',skin)
+      +line('M0 -36 L3 -34 M38 -50 L41 -50',ink,.72),
+    piri:shape('M5 -59 Q8 -64 13 -63 Q17 -61 14 -59 L10 -58 L14 -56 Q14 -53 11 -54 L6 -56 Z M10 -46 Q14 -50 18 -48 Q22 -46 18 -44 L16 -44 L19 -42 Q19 -39 16 -40 L11 -42 Z',skin)
+      +line('M8 -60 L12 -60 M13 -45 L17 -46',ink,.72),
+    janggu:shape('M-33 -48 Q-29 -51 -26 -48 Q-23 -45 -27 -42 Q-31 -40 -34 -43 Z M31 -60 Q34 -63 37 -59 Q41 -56 37 -53 Q34 -51 31 -54 Z',skin)
+      +line('M-31 -46 L-28 -45 M33 -58 L36 -56',ink,.72)
+  };
+  const rotateJacket=bowing&&!o.coat;
+  const waist=rotateJacket?0:x-sx, waistY=rotateJacket?40:y-sy;
+  const end=waistY+(o.short||skirt?-6:4);
+  const shortHem='L'+(waist+21)+' '+end+' Q'+waist+' '+(end+7)+' '+(waist-21)+' '+end;
+  const coatHem=hem-sy-10;
+  const longHem=dancing?'Q24 34 35 60 Q18 72 -3 68 Q-22 62 -49 46 Q-29 38 -19 8':
+    'Q'+(waist+15)+' '+waistY+' '+(right-sx-5)+' '+coatHem+
+    ' Q'+waist+' '+(coatHem+8)+' '+(left-sx+5)+' '+coatHem+
+    ' Q'+(waist-15)+' '+waistY+' -19 8';
+  const torso=shape('M-19 8 Q-22 -1 -10 -4 Q0 -8 10 -4 Q21 -2 19 8 '+(o.coat?longHem:shortHem)+' Z',o.top);
+  const quilt=o.quilt?[-14,-8,-2,4,10,16].map(offset=>
+    line('M'+offset+' 5 Q'+(offset+waist/2)+' '+(end/2)+' '+(waist+offset)+' '+(end+1),'#c2af96',.8)
+  ).join(""):"";
+  const trim=o.trim?line('M9 16 Q'+(waist+10)+' '+(waistY-1)+' '+(waist+7)+' '+(coatHem+3),o.trim,3):"";
+  const sash=o.sash?shape('M'+(waist-19)+' '+(waistY-9)+' Q'+waist+' '+(waistY-4)+' '+(waist+18)+' '+(waistY-9)+
+    ' L'+(waist+18)+' '+(waistY-5)+' Q'+waist+' '+waistY+' '+(waist-19)+' '+(waistY-5)+' Z',o.sash):"";
+  const collar=shape('M8 -5 L11 -3 Q6 8 0 12 L-3 9 Z M-12 -3 L-8 -5 Q-1 5 11 13 L8 17 Q-6 10 -12 -3 Z','#fff5e4');
+  const seam=line('M9 16 Q'+(waist+10)+' '+(waistY-1)+' '+(waist+7)+' '+(o.coat?coatHem+3:end+3),ink,1);
+  const tie=shape('M9 15 Q14 12 19 15 L18 18 Q14 18 11 17 L16 27 L13 28 L9 19 L9 25 L6 24 Z',
+    o.trim||(outfit==="skirt"?"#8c4c48":o.top));
+  const vest=o.over?shape('M-14 -3 L-10 -4 Q-4 4 0 11 L0 '+(end+3)+' Q'+(waist-10)+' '+(end+5)+' '+(waist-21)+' '+end+
+    ' L-14 13 Q-9 5 -14 -3 Z M10 -4 L15 -3 Q10 6 16 13 L'+(waist+21)+' '+end+
+    ' Q'+(waist+12)+' '+(end+4)+' 3 '+(end+3)+' L3 10 Z',o.over)+
+    line('M0 14 Q2 11 6 14 M0 16 Q2 19 6 16',ink,1):"";
+  const jacket='<g transform="translate('+sx+' '+sy+')'+(rotateJacket?' rotate(40)':'')+'">'+torso+quilt+trim+collar+seam+(o.over?vest:tie)+sash+'</g>';
+  const sideFace=bowing||p.profile;
+  const features=sideFace?'M5 .8 L11 2.8 '+(pose==="talk"?'M10 10 Q12 7 15 10 Q13 12 10 10 Z':'M10 10 Q12 10 14 9')
+    :pose==="tired"
+    ? 'M-10 3.9 L-4 1 M4 1 L10 3.9 M2 4 Q4 6 2 7 M0 11 Q2 9 5 11'
+    : 'M-10 2.8 L-4 .8 M4 .8 L10 2.8 M2 4 Q4 6 2 7 M0 10 L5 10';
+  const face='<g transform="translate('+hx+' '+hy+') rotate('+angle+')'+(p.profile===-1?' scale(-1 1)':'')+'">'+
+    (female?shape('M-14 -8 Q-25 -8 -25 4 Q-25 14 -13 12 Z','#383531'):shape('M-7 -16 Q-10 -26 0 -26 Q9 -24 6 -16 Z','#383531'))+
+    shape(sideFace?'M-17 -4 Q-19 -19 0 -20 Q19 -19 17 -4 L19 2 Q23 6 17 7 Q16 16 4 18 Q-9 18 -15 9 Q-21 7 -20 1 Q-20 -3 -17 -4 Z':'M-17 -4 Q-19 -19 0 -20 Q19 -19 19 -4 L17 5 Q14 17 2 19 Q-12 18 -16 8 Q-22 6 -21 1 Q-21 -4 -17 -4 Z',skin)+
+    shape(female?'M-18 1 Q-23 -16 -7 -20 Q13 -26 19 -11 L18 -5 Q8 -8 3 -16 Q-4 -5 -18 1 Z':'M-18 1 Q-22 -20 0 -20 Q19 -20 19 -7 Q8 -10 -15 -6 L-15 1 Z','#383531')+
+    line(features,'#574035',1.05)+'</g>';
+  const foreground = p.prop==="desk"||p.prop==="laptop"||p.prop==="lunch" ? props.table+props[p.prop] : props[p.prop]||"";
+  const lowerBody=(p.instrument?instrumentLap:p.seated?(skirt?foldedSkirt:foldedTrousers):trousers+(skirt?drape:""))+pleats;
+  const upperBody=holding?jacket+sleeves.join(""):sleeves[0]+(bowing||p.reclining?jacket+sleeves[1]:sleeves[1]+jacket);
+  const neck=p.instrument?'<g transform="translate('+sx+' '+sy+')">'+
+    shape('M-5 -10 Q1 -12 8 -10 L9 2 Q3 8 -6 3 Z',skin)+'</g>':"";
+  const body=(p.prop==="bag"?props.bag:"")+lowerBody+neck+upperBody+danceCloth+face+(p.prop==="bag"?"":foreground)+(grips[pose]||"");
+  const pillow=shape('M-80 -12 Q-67 -15 -46 -12 L-38 -4 Q-45 3 -79 1 Q-86 0 -80 -12 Z','#c3ac85')+
+    line('M-79 -5 Q-65 -2 -46 -5','#9b815f',.95);
+  return '<g stroke="'+ink+'" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round">'+
+    (p.reclining?pillow+'<g transform="translate(58 -20) rotate(-90)">'+body+'</g>':body)+'</g>';
+}
+
+// Scenery is drawn in stage coordinates, with nearby objects cut by the frame.
+const ground=(sky,earth)=>'<rect width="900" height="900" fill="'+sky+'"/>'+
+  shape('M0 479 Q252 457 505 482 T900 471 V900 H0 Z',earth)+
+  line('M34 707 q68 -12 129 -5 M687 720 q60 -8 127 0 M309 816 q46 -6 81 -4 M811 826 l42 -3','#b6a389',2);
+const eaves=shape('M-25 -38 H527 Q573 56 647 107 Q674 126 704 121 Q685 150 632 156 Q365 165 -25 150 Z','#6d7470')+
+  line('M-10 36 Q329 45 573 36 M-10 75 Q340 83 611 77 M-10 113 Q384 124 662 113','#89908a',3)+
+  Array.from({length:12},(_,i)=>{
+    const x=i*53-18;
+    return line('M'+x+' -12 q-4 85 29 157','#545d59',2.7);
+  }).join("")+
+  shape('M-25 138 Q361 154 635 145 Q681 141 704 121 Q701 149 667 163 Q324 179 -25 160 Z','#505957');
+const lattice=(x,y,width,height)=>{
+  const bars=[1,2,3,4].map(i=>'M'+(i*width/5)+' 0 V'+height).join(" ")+
+    [1,2,3,4].map(i=>' M0 '+(i*height/5)+' H'+width).join("");
+  return '<g transform="translate('+x+' '+y+')"><rect width="'+width+'" height="'+height+'" fill="#eee3c9" stroke="#92745b" stroke-width="8"/>'+
+    line(bars,'#a58968',2.7)+'</g>';
+};
+const post=(x,y,bottom,color,light)=>'<g transform="translate('+x+' '+y+')">'+
+  '<rect width="38" height="'+(bottom-y)+'" rx="3" fill="'+color+'"/>'+
+  '<rect x="4" width="9" height="'+(bottom-y)+'" fill="'+light+'"/>'+
+  shape('M-8 '+(bottom-y-6)+' h54 l7 17 h-67 Z','#a9a297')+'</g>';
+const stoneColors=["#c8bcaa","#b5ae9e","#d1c2ad","#bdb9a9","#c5b6a0"];
+const wallStones=Array.from({length:4},(_,row)=>Array.from({length:10},(_,col)=>{
+  const x=col*105-40-(row%2)*52;
+  const y=259+row*64+((col*7+row*5)%11)-col*4;
+  return '<g transform="translate('+x+' '+y+')">'+
+    '<path d="M6 9 Q18 0 43 2 L78 0 Q94 1 100 12 L104 38 Q105 54 88 57 L23 61 Q4 62 0 48 Z" fill="'+stoneColors[(row+col*2)%stoneColors.length]+'" stroke="#a39583" stroke-width="2.2"/>'+
+    line('M18 15 q17 -7 36 -5','#e0d5c2',2)+'</g>';
+}).join("")).join("");
+const backgrounds={
+  clear:"",
+  paper:'<rect width="900" height="900" fill="#f4e7cb"/><rect x="18" y="18" width="864" height="864" rx="2" fill="none" stroke="#d6bf98" stroke-width="1.5"/>',
+  palace:ground("#e6e7d6","#dfd0b6")+
+    shape('M0 120 H645 V489 H0 Z','#d4bb91')+
+    shape('M0 209 H623 V472 H0 Z','#aa8d70')+
+    lattice(47,224,175,238)+lattice(244,224,175,238)+
+    shape('M446 214 H603 V482 H446 Z','#99826e')+
+    line('M468 223 V473 M506 223 V473 M544 223 V473 M580 223 V473','#b49a79',3)+
+    shape('M0 467 H655 L711 524 H0 Z','#b5aea0')+
+    shape('M0 524 H711 V549 H0 Z','#a8a194')+
+    line('M0 490 H678 M0 525 H711 M81 525 l19 -58 M277 525 l4 -58 M498 525 l-14 -58','#908a7f',2.7)+
+    post(9,141,490,"#945c50","#b37a65")+post(211,141,490,"#945c50","#b37a65")+
+    post(412,141,490,"#945c50","#b37a65")+post(614,141,490,"#945c50","#b37a65")+
+    shape('M0 124 H665 V192 H0 Z','#698477')+
+    line('M0 164 H658 M0 184 H652','#547167',5)+
+    Array.from({length:13},(_,i)=>'<g transform="translate('+(12+i*50)+' 172)">'+
+      shape('M-10 0 Q0 -13 10 0 Q0 13 -10 0 Z','#d2ad70')+
+      line('M-7 0 Q0 -6 7 0 Q0 6 -7 0','#9a6e5d',1.9)+'</g>').join("")+
+    eaves,
+  school:ground("#e8e5d4","#dfc9a8")+
+    shape('M0 106 H609 V450 H0 Z','#ccb18d')+
+    shape('M0 139 H400 V448 H0 Z','#b5a38b')+
+    shape('M0 167 H400 V420 H0 Z','#c7b69b')+
+    lattice(421,169,161,238)+
+    shape('M0 401 H615 L655 477 H0 Z','#b99a74')+
+    shape('M0 477 H655 V509 H0 Z','#ab9278')+
+    line('M0 443 H634 M0 463 H646 M95 477 l22 -76 M254 477 l7 -76 M420 477 l-8 -76','#957d64',2.8)+
+    '<g transform="translate(23 356) scale(2.3)">'+props.table+props.desk+'</g>'+
+    '<g transform="translate(228 382) scale(1.8)">'+props.table+'<g transform="translate(17 8)">'+props.book+'</g></g>'+
+    post(386,127,450,"#8b6c53","#ab8764")+post(586,127,450,"#8b6c53","#ab8764")+
+    shape('M0 100 H635 V155 H0 Z','#a2805d')+
+    '<g transform="translate(-10 -16) scale(.95 .88)">'+eaves+'</g>',
+  hanok:ground("#e8e7d7","#decbaf")+
+    shape('M0 298 Q97 276 228 289 L420 274 V475 H0 Z','#d5c3a7')+
+    line('M0 294 Q98 272 232 285 L407 269','#89867b',13)+
+    shape('M327 111 H900 V491 H327 Z','#ede0c2')+
+    lattice(510,174,133,299)+lattice(648,174,133,299)+
+    shape('M508 392 H783 V475 H508 Z','#b69775')+
+    line('M645 173 V475 M619 369 h12 M659 369 h12','#8f7055',5)+
+    shape('M303 471 H900 V529 H267 Z','#b4a89a')+
+    line('M282 506 H900 M435 529 l15 -58 M650 529 v-58 M823 529 l-9 -58','#9e9385',2.5)+
+    post(319,112,476,"#917258","#af8f6b")+post(477,112,476,"#917258","#af8f6b")+post(784,112,476,"#917258","#af8f6b")+
+    shape('M292 100 H900 V152 H292 Z','#aa8b67')+
+    '<g transform="translate(938 -26) scale(-1 .96)">'+eaves+'</g>'+
+    '<ellipse cx="195" cy="551" rx="55" ry="10" fill="#bfae92"/>'+
+    '<path d="M171 476 Q158 483 153 510 Q151 542 193 547 Q232 542 230 511 Q227 488 211 476 Z" fill="#a18069" stroke="#8b6d58" stroke-width="3"/>'+
+    '<ellipse cx="191" cy="474" rx="24" ry="8" fill="#826755"/><ellipse cx="191" cy="472" rx="27" ry="6" fill="#b39678"/>',
+  wall:ground("#e4e6d6","#e4d3b8")+
+    shape('M0 263 V82 Q45 65 86 103 Q113 65 171 89 Q207 104 221 137 Q268 121 313 153 Q340 177 332 241 Z','#a8b49a')+
+    shape('M66 280 Q84 226 78 153 L92 141 Q100 181 111 196 Q138 171 165 159 L173 169 Q119 208 109 271 Z','#8e826f')+
+    shape('M0 252 L900 218 V492 L0 535 Z','#aa9d8c')+
+    wallStones+
+    shape('M0 236 L900 202 V232 L0 269 Z','#858477')+
+    line('M0 240 L900 206 M0 261 L900 227','#aaa497',2.8)+
+    Array.from({length:19},(_,i)=>line('M'+(i*50)+' '+(242-i*1.9)+' l-7 18','#6e7066',2.2)).join("")+
+    line('M0 534 Q213 508 410 513 T900 491','#b8a58a',3),
+  market:ground("#eae3d1","#e2cba9")+
+    shape('M307 94 L900 76 V428 H403 Z','#c8b493')+
+    shape('M440 165 H900 V404 H440 Z','#ad9476')+
+    line('M450 266 H900 M450 375 H900','#8e775e',9)+
+    shape('M485 224 H576 L565 261 H495 Z','#beaa7b')+
+    shape('M698 214 H787 L778 261 H706 Z','#bfa478')+
+    '<g fill="#959a71"><circle cx="503" cy="222" r="11"/><circle cx="524" cy="217" r="13"/><circle cx="547" cy="219" r="10"/><circle cx="563" cy="224" r="9"/></g>'+
+    '<g fill="#b98464"><circle cx="713" cy="214" r="11"/><circle cx="733" cy="208" r="12"/><circle cx="755" cy="211" r="12"/><circle cx="772" cy="214" r="10"/></g>'+
+    line('M496 245 H567 M706 238 H782','#a18962',2.5)+
+    shape('M334 277 H900 V318 H334 Z','#bca27e')+
+    post(375,102,462,"#987856","#b79a73")+post(849,102,462,"#987856","#b79a73")+
+    shape('M327 67 L900 45 V127 L310 187 Z','#b3957b')+
+    shape('M327 67 L900 45 V121 Q585 124 310 164 Z','#c8a384')+
+    line('M448 61 L429 147 M602 55 L583 137 M754 50 L742 128','#a98268',3.2)+
+    shape('M310 164 Q594 126 900 117 V141 Q580 153 308 191 Z','#af826e')+
+    shape('M430 392 H900 V431 H412 Z','#a38768')+
+    shape('M412 431 H900 V489 H412 Z','#bda180')+
+    line('M430 442 H900 M430 476 H900 M456 435 V485 M621 435 V485 M788 435 V485','#9c8062',2.5)+
+    '<g transform="translate(481 481) scale(2.05)">'+props.basket+'</g>'+
+    '<g transform="translate(631 498) scale(2.12)">'+props.basket+'</g>'+
+    '<path d="M782 375 Q789 347 811 345 Q831 348 836 376 L829 401 H791 Z" fill="#9c7861" stroke="#84634d" stroke-width="3"/>'+
+    '<ellipse cx="811" cy="346" rx="21" ry="6" fill="#b69b7d"/>'+
+    '<g transform="translate(-31 575) scale(2.45)">'+props.basket+'</g>',
+  bridge:ground("#e4e8d8","#dfd1b5")+
+    shape('M0 282 Q110 232 227 261 Q338 284 464 250 Q687 211 900 263 V477 H0 Z','#b2bda0')+
+    shape('M0 377 Q190 321 344 363 Q468 397 619 358 Q754 321 900 341 V488 Q729 460 618 501 Q473 539 333 501 Q143 450 0 508 Z','#a6b9ad')+
+    line('M0 379 Q190 326 344 367 Q475 402 620 362 T900 344 M0 506 Q149 449 334 500 Q485 539 617 501 T900 487','#a89c81',3)+
+    line('M44 418 q53 -15 101 -9 M96 445 q31 -8 63 -8 M399 439 q81 11 141 -4 M622 433 q59 -17 116 -19 M734 451 h66','#d5dfcd',3)+
+    shape('M-23 494 L257 422 L355 322 L426 332 L327 449 L-8 542 Z','#a39c8a')+
+    shape('M-23 484 L252 410 L350 310 L424 320 L321 437 L-11 529 Z','#c1b7a4')+
+    line('M40 470 L56 509 M122 446 L140 487 M204 425 L222 462 M274 388 L312 445 M313 347 L351 395 M355 312 L393 348','#968d7b',3)+
+    line('M773 503 q-5 -37 -23 -49 M776 507 q14 -43 30 -50 M791 507 q9 -22 30 -27 M812 494 q8 -21 27 -26 M454 359 q-4 -31 -20 -41 M459 358 q4 -26 16 -38','#7d906d',4),
+  rain:ground("#cbd5d2","#c1b9a7")+
+    shape('M0 127 H503 V493 L0 541 Z','#c3baaa')+
+    shape('M41 191 H259 V489 L41 516 Z','#9c9080')+
+    line('M88 192 V501 M137 191 V496 M184 191 V491 M230 191 V486 M151 350 h15','#807669',4)+
+    shape('M0 474 L509 445 L531 478 L0 541 Z','#9e9b90')+
+    '<g transform="translate(-136 -15) scale(1 .94)">'+eaves+'</g>'+
+    shape('M644 310 L900 267 V454 L654 481 Z','#a9b2a5')+
+    line('M644 309 L900 267','#858d86',11)+
+    '<ellipse cx="579" cy="586" rx="100" ry="23" fill="#aab7b4"/><ellipse cx="198" cy="715" rx="111" ry="20" fill="#a9b7b2"/><ellipse cx="779" cy="756" rx="66" ry="14" fill="#aab7b2"/>'+
+    line('M505 587 q43 -8 77 -2 M562 596 h56 M131 713 q50 -9 103 -4 M764 755 h47','#d9ded2',3)+
+    Array.from({length:30},(_,i)=>{
+      const x=(i*137+26)%920, y=(i*103+55)%795;
+      return line('M'+x+' '+y+' l-10 25','#9baead',1.9);
+    }).join("")+
+    line('M432 132 l-6 24 M433 167 l-5 17 M396 140 l-5 20','#9baead',2.5),
+  yard:ground("#e8e6d1","#e3ceb0")+
+    shape('M0 106 H569 V452 H0 Z','#e2d1af')+
+    lattice(20,148,167,253)+lattice(210,148,164,253)+
+    shape('M0 408 H567 L622 472 H0 Z','#bd9d78')+
+    shape('M0 472 H622 V506 H0 Z','#a68c72')+
+    line('M0 438 H591 M0 459 H609 M95 472 l16 -64 M280 472 v-64 M460 472 l-12 -64','#967b60',2.7)+
+    post(394,93,447,"#a4815e","#b7976c")+post(550,93,447,"#a4815e","#b7976c")+
+    '<g transform="translate(-33 -37) scale(.97 .83)">'+eaves+'</g>'+
+    '<g transform="translate(718 502) scale(2.25)">'+props.table+'</g>'+
+    '<ellipse cx="733" cy="427" rx="19" ry="6" fill="#b68a63"/><ellipse cx="791" cy="427" rx="16" ry="6" fill="#a88968"/>'+
+    shape('M714 427 H752 Q748 444 733 444 Q717 443 714 427 Z','#a4866b')+
+    shape('M775 427 H807 Q801 438 791 439 Q781 439 775 427 Z','#b6a58b')+
+    line('M697 438 l-3 -13 M700 441 l-1 -15','#7a644e',2),
+  bench:ground("#e7e6d1","#e1d1af")+
+    shape('M0 327 Q123 270 263 284 Q411 301 520 280 Q722 226 900 293 V461 H0 Z','#bfcaad')+
+    shape('M0 0 H524 Q559 65 491 124 Q461 156 401 158 Q356 207 281 189 Q216 223 171 188 Q82 230 0 188 Z','#9fab86')+
+    shape('M83 464 Q119 389 110 317 Q99 240 78 210 L27 172 L40 152 Q85 165 112 207 Q135 164 176 127 L201 132 Q152 187 151 244 Q187 221 241 206 L252 218 Q201 244 160 283 Q163 382 198 457 Q175 476 147 463 Q118 484 83 464 Z','#a08a70')+
+    line('M123 449 Q144 392 132 329 Q117 272 124 230 M157 277 q36 -39 72 -51','#87765f',3)+
+    shape('M221 463 L274 383 H587 L650 463 Z','#be9f79')+
+    shape('M221 463 H650 V488 H221 Z','#9b805f')+
+    shape('M240 487 H262 L254 538 H235 Z M607 487 H630 L635 538 H615 Z','#92765a')+
+    line('M255 417 H615 M237 442 H633 M322 386 L294 462 M400 386 L391 462 M479 386 L490 462 M548 386 L582 462','#a78a67',2.8)+
+    shape('M0 525 Q206 491 392 539 Q316 566 91 555 L0 548 Z','#d2c8a6'),
+  pond:ground("#e1e7d7","#dbcfb5")+
+    shape('M374 149 Q577 122 900 153 V553 Q646 533 494 480 Q392 435 357 333 Z','#9fb6ac')+
+    line('M389 341 Q403 430 500 481 Q644 530 900 553','#ae9e82',8)+
+    line('M581 204 q78 -12 143 -5 M676 255 h111 M773 374 q41 5 88 2 M524 396 q47 7 99 5 M707 482 q63 8 99 4','#ced9c8',3)+
+    '<g fill="#7f9577"><path d="M639 303 l24 -8 a32 12 0 1 1 -10 -5 Z"/><path d="M750 395 l19 -9 a27 10 0 1 1 -12 -3 Z"/><path d="M840 324 l18 -6 a25 10 0 1 1 -8 -3 Z"/></g>'+
+    shape('M650 286 Q638 280 642 267 Q650 268 655 276 Q656 264 662 262 Q666 270 665 277 Q671 269 678 270 Q679 283 666 287 Z','#bd9290')+
+    shape('M0 369 H348 L453 503 H0 Z','#b19a7b')+
+    shape('M0 503 H453 V534 H0 Z','#a18d78')+
+    line('M0 452 H411 M0 480 H435 M86 503 l16 -134 M231 503 l-3 -134 M365 503 l-27 -100','#937c65',2.7)+
+    shape('M0 259 H348 V278 H0 Z M0 334 H348 V351 H0 Z','#ac8966')+
+    line('M54 272 V340 M126 272 V340 M200 272 V340 M273 272 V340 M338 272 V340','#9d7b5c',10)+
+    post(21,91,455,"#947557","#b2936c")+post(328,91,455,"#947557","#b2936c")+
+    '<g transform="translate(-200 -44) scale(.89 .9)">'+eaves+'</g>',
+  tavern:ground("#e8e3cf","#dfc9a8")+
+    shape('M0 90 H664 V405 H0 Z','#d8c09c')+
+    shape('M26 143 H280 V372 H26 Z','#a48d72')+
+    line('M62 151 V367 M107 151 V367 M152 151 V367 M197 151 V367 M241 151 V367','#90775d',3)+
+    lattice(330,155,190,193)+post(285,99,390,"#8e6c50","#b39168")+post(610,99,390,"#8e6c50","#b39168")+
+    '<g transform="translate(-28 -28) scale(1.03 .85)">'+eaves+'</g>'+
+    shape('M-26 410 L119 300 H627 L811 410 V585 H-26 Z','#b69369')+
+    shape('M-26 410 L119 300 H627 L811 410 L746 544 H-39 Z','#c9a97b')+
+    shape('M-39 544 H746 V580 H-39 Z M746 544 L811 410 V447 L746 580 Z','#9d7b5c')+
+    shape('M43 578 H70 L64 631 H36 Z M672 579 H699 L704 632 H678 Z M781 467 H801 L800 528 H779 Z','#8c6e51')+
+    line('M73 336 H682 M25 373 H744 M-24 411 H810 M-29 451 H789 M-33 491 H768 M200 304 L128 543 M299 304 L259 543 M399 304 V543 M499 304 L540 543 M600 304 L680 543','#a88a64',3)+
+    '<g transform="translate(139 408) scale(2.2)">'+props.table+'</g>'+
+    '<ellipse cx="164" cy="333" rx="18" ry="6" fill="#9c795d"/><path d="M146 333 H182 Q178 347 164 348 Q150 348 146 333Z" fill="#ad8a69"/><ellipse cx="222" cy="336" rx="21" ry="6" fill="#d9c7a7"/>'+
+    '<path d="M727 328 Q708 342 707 373 Q707 396 741 402 Q779 397 777 371 Q773 341 756 329 Z" fill="#9d7c62" stroke="#846750" stroke-width="3"/><ellipse cx="742" cy="329" rx="20" ry="6" fill="#80634f"/>',
+  room:'<rect width="900" height="900" fill="#e6dac2"/>'+
+    shape('M0 0 H900 V103 H0 Z','#a78768')+
+    shape('M0 94 H900 V532 H0 Z','#e2d2b4')+
+    shape('M0 94 L143 129 V493 L0 569 Z','#d2bfa3')+
+    shape('M143 129 H818 V496 H143 Z','#c4a986')+
+    lattice(192,158,182,331)+lattice(382,158,182,331)+lattice(572,158,182,331)+
+    shape('M187 407 H759 V493 H187 Z','#b69772')+
+    line('M378 154 V493 M568 154 V493 M350 384 h13 M395 384 h13 M538 384 h13 M584 384 h13','#8d7055',5)+
+    shape('M0 555 L143 493 H900 V900 H0 Z','#d6bea0')+
+    shape('M0 547 L145 481 H900 V509 H151 L0 578 Z','#b29a7d')+
+    line('M0 658 H900 M0 760 H900 M0 863 H900 M226 507 L171 658 M454 509 L420 658 M695 509 L728 658 M281 659 L235 761 M614 660 L632 760 M441 761 V863','#bda387',3)+
+    post(125,96,500,"#9b7c5f","#b8946c")+post(790,94,502,"#9b7c5f","#b8946c")+
+    shape('M729 564 L812 560 L845 606 L757 612 Z','#a4897d')+
+    line('M756 595 l68 -5','#bc9f91',2.6),
+  cowshed:ground("#e7e1ca","#d9c5a5")+
+    shape('M0 95 H900 V470 H0 Z','#bca589')+
+    shape('M0 148 H678 V454 H0 Z','#a58d73')+
+    line('M0 206 H698 M0 324 H698 M144 157 V452 M270 157 V452 M402 157 V452 M551 157 V452','#957c64',4)+
+    post(94,88,483,"#8d6d52","#ac8964")+post(764,86,482,"#8d6d52","#ac8964")+
+    shape('M0 0 H900 V119 Q564 92 0 135 Z','#988064')+
+    line('M0 33 Q483 9 900 41 M0 85 Q483 60 900 92','#a38a6c',4)+
+    '<ellipse cx="372" cy="495" rx="232" ry="32" fill="#bbaa89"/>'+
+    '<g transform="translate(-60 0)" stroke="#83634e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">'+
+      line('M259 324 Q223 343 218 405','#987456',10)+
+      shape('M217 395 Q200 411 211 429 Q225 429 227 408 Z','#83644e')+
+      shape('M318 368 L342 374 L333 477 Q314 489 303 475 L309 413 Z M510 363 L539 370 L527 473 Q506 485 498 470 Z','#a98562')+
+      shape('M287 367 L318 375 L309 487 Q283 497 275 484 L284 430 Z M476 367 L505 377 L496 486 Q471 499 460 484 L467 427 Z','#b9946d')+
+      shape('M261 343 Q250 291 295 279 Q357 262 426 284 Q465 294 501 273 Q538 257 562 287 Q579 326 550 374 Q516 416 450 410 Q373 426 304 394 Q269 382 261 343 Z','#be9b75')+
+      shape('M563 278 Q575 248 568 233 Q592 243 588 272 Z M615 272 Q637 258 637 240 Q649 256 634 280 Z','#ddd1b7')+
+      shape('M560 286 Q533 268 522 285 Q535 307 558 307 Z M625 286 Q654 272 665 293 Q651 308 629 310 Z','#b68e6b')+
+      shape('M553 288 Q571 262 610 269 Q643 275 641 311 L638 356 Q628 384 597 381 Q567 374 555 343 Z','#c6a680')+
+      shape('M578 345 Q603 333 628 344 Q648 358 633 372 Q612 390 585 376 Q570 367 578 345 Z','#ddbea2')+
+      '<path d="M576 312 l8 3 M622 310 l-7 4 M593 359 l3 2 M623 358 l-3 2" stroke="#645449" stroke-width="4" fill="none"/></g>'+
+    shape('M659 394 L900 379 V462 L671 469 Z','#a58a68')+
+    shape('M667 392 L900 379 V402 L677 421 Z','#bea682')+
+    line('M690 403 l13 -13 M721 405 l14 -21 M753 395 l8 -12 M805 391 l16 -14','#dbc48d',3)+
+    line('M78 539 l26 -14 M91 540 l29 -5 M183 581 l26 -16 M198 581 l29 -5','#c1a66f',2.6),
+  feast:ground("#e9e2cf","#e3cfb1")+
+    shape('M0 96 H900 V459 H0 Z','#dbc5a4')+
+    lattice(45,147,170,247)+lattice(646,147,170,247)+
+    post(15,94,437,"#9b775b","#b9916e")+post(827,94,437,"#9b775b","#b9916e")+
+    shape('M285 115 H611 V391 H285 Z','#d1ad98')+
+    line('M299 121 V389 M376 120 V389 M451 120 V389 M527 120 V389 M600 120 V389','#ba9481',3)+
+    shape('M305 330 Q339 263 373 318 Q414 235 470 312 Q526 249 581 332 V386 H305 Z','#a0aa8c')+
+    line('M313 362 Q373 350 425 365 T581 359','#d6d2b2',3)+
+    '<g transform="translate(-5 -55) scale(1.31 .96)">'+eaves+'</g>'+
+    line('M0 154 Q427 256 900 140','#a38062',3)+
+    Array.from({length:9},(_,i)=>{
+      const x=53+i*99, y=200-((i-4)**2)*2.5;
+      return shape('M'+x+' '+y+' l25 -1 -5 39 -10 -10 -10 11 Z',i%2?"#c39c6d":"#b78679");
+    }).join("")+
+    shape('M-33 434 H275 L303 470 H-33 Z M606 438 H900 V470 H578 Z','#b4906c')+
+    shape('M-30 470 H303 V494 H-30 Z M578 470 H900 V494 H578 Z','#98795c')+
+    shape('M35 489 H58 L48 554 H25 Z M256 488 H277 L281 551 H259 Z M600 489 H620 L612 552 H590 Z M855 490 H878 L885 552 H863 Z','#a18265')+
+    '<g fill="#f1e3c8" stroke="#a18166" stroke-width="2.8"><ellipse cx="70" cy="435" rx="39" ry="12"/><ellipse cx="192" cy="445" rx="43" ry="12"/><ellipse cx="678" cy="438" rx="44" ry="12"/><ellipse cx="800" cy="448" rx="38" ry="12"/></g>'+
+    '<g fill="#b97962"><circle cx="176" cy="441" r="11"/><circle cx="193" cy="436" r="11"/><circle cx="208" cy="442" r="10"/><circle cx="792" cy="443" r="10"/><circle cx="808" cy="444" r="10"/></g>'+
+    shape('M43 431 Q69 414 95 431 Q76 446 43 431 Z M652 435 Q677 417 703 435 Q684 450 652 435 Z','#a6a27b')
+};
+const ns="http://www.w3.org/2000/svg";
+const $=id=>document.getElementById(id);
+const stage=$("stage"), people=$("people"), back=$("back"), selection=$("selection");
+const actorScale=2.1;
+const stageSize=900;
+const exportSize=stageSize*2;
+const actors=[];
+let selected=null, nextId=1, drag=null, exportUrl;
+const clamp=(n,min,max)=>Math.min(max,Math.max(min,n));
+const describe=a=>[a.person==="woman"?"여자":"남자",poses[a.pose].label,outfits[a.outfit].label].join(" · ");
+const announce=message=>{$("status").textContent=message;};
+function currentStyle(){
+  return {person:document.querySelector('input[name="person"]:checked').value,pose:$("pose").value,outfit:$("outfit").value};
+}
+function syncPreview(){
+  const appearance=currentStyle();
+  $("preview").innerHTML=character(appearance);
+  $("previewLabel").textContent=poses[appearance.pose].label;
+}
+function transform(actor){
+  return 'translate('+actor.x+' '+actor.y+') scale('+(actor.flip?-actorScale:actorScale)+' '+actorScale+')';
+}
+function selectActor(actor){
+  selected=actor;
+  $("editHint").textContent=actor?"선택한 인물을 편집 중이에요. 빈 곳을 누르면 선택이 풀려요.":"동작과 한복을 골라 보세요.";
+  for(const item of actors) item.node.setAttribute("aria-pressed",String(item===actor));
+  $("flip").disabled=$("front").disabled=$("remove").disabled=!actor;
+  selection.replaceChildren();
+  if(!actor)return;
+  const box=actor.node.getBBox();
+  const frame=document.createElementNS(ns,"rect");
+  for(const [key,value] of Object.entries({x:box.x-6,y:box.y-6,width:box.width+12,height:box.height+12,rx:5,fill:"none",stroke:"#527160","stroke-width":2,"stroke-dasharray":"5 4"}))frame.setAttribute(key,value);
+  selection.append(frame);
+  selection.setAttribute("transform",transform(actor));
+}
+function setPosition(actor,x,y){
+  const box=actor.node.getBBox();
+  const minX=actor.flip?-box.x-box.width:box.x;
+  const maxX=actor.flip?-box.x:box.x+box.width;
+  actor.x=clamp(x,8-minX*actorScale,stageSize-8-maxX*actorScale);
+  actor.y=clamp(y,8-box.y*actorScale,stageSize-8-(box.y+box.height)*actorScale);
+  actor.node.setAttribute("transform",transform(actor));
+  if(actor===selected)selection.setAttribute("transform",transform(actor));
+}
+function updateActor(actor,appearance){
+  Object.assign(actor,appearance);
+  actor.node.innerHTML=character(actor);
+  actor.node.setAttribute("aria-label","인물 "+actor.id+" · "+describe(actor));
+  setPosition(actor,actor.x,actor.y);
+  if(actor===selected)selectActor(actor);
+}
+function changeAppearance(){
+  syncPreview();
+  if(selected)updateActor(selected,currentStyle());
+}
+function activate(actor){
+  $("pose").value=actor.pose;
+  $("outfit").value=actor.outfit;
+  document.querySelector('input[name="person"][value="'+actor.person+'"]').checked=true;
+  syncPreview();
+  selectActor(actor);
+}
+function updateCount(){
+  $("count").textContent="인물 "+actors.length+"명 · "+exportSize+" × "+exportSize+" px";
+}
+function addActor(appearance,x,y){
+  const node=document.createElementNS(ns,"g");
+  const actor={id:nextId++,x,y,flip:false,node};
+  node.setAttribute("tabindex","0");
+  node.setAttribute("role","button");
+  actors.push(actor);
+  people.append(node);
+  updateActor(actor,appearance);
+  node.addEventListener("focus",()=>activate(actor));
+  node.addEventListener("pointerdown",event=>{
+    if(event.button!==0||drag)return;
+    event.preventDefault();
+    node.focus({preventScroll:true});
+    activate(actor);
+    const point=pointAt(event);
+    drag={actor,id:event.pointerId,dx:actor.x-point.x,dy:actor.y-point.y};
+    stage.setPointerCapture(event.pointerId);
+    stage.classList.add("dragging");
+  });
+  node.addEventListener("keydown",event=>{
+    const offsets={ArrowLeft:[-8,0],ArrowRight:[8,0],ArrowUp:[0,-8],ArrowDown:[0,8]};
+    const offset=offsets[event.key];
+    if(offset){
+      event.preventDefault();
+      setPosition(actor,actor.x+offset[0],actor.y+offset[1]);
+    }else if(event.key==="Delete"){
+      event.preventDefault();
+      removeActor();
+    }else if(event.key==="Enter"||event.key===" "){
+      event.preventDefault();
+      activate(actor);
+    }
+  });
+  updateCount();
+  return actor;
+}
+function pointAt(event){
+  return new DOMPoint(event.clientX,event.clientY).matrixTransform(stage.getScreenCTM().inverse());
+}
+stage.addEventListener("pointermove",event=>{
+  if(!drag||drag.id!==event.pointerId)return;
+  const point=pointAt(event);
+  setPosition(drag.actor,point.x+drag.dx,point.y+drag.dy);
+});
+for(const type of ["pointerup","pointercancel","lostpointercapture"]){
+  stage.addEventListener(type,event=>{
+    if(!drag||drag.id!==event.pointerId)return;
+    drag=null;
+    stage.classList.remove("dragging");
+  });
+}
+stage.addEventListener("pointerdown",event=>{
+  if(!people.contains(event.target)){
+    selectActor(null);
+    announce("새 인물의 동작과 의상을 고를 수 있어요.");
+  }
+});
+function removeActor(){
+  if(!selected)return;
+  actors.splice(actors.indexOf(selected),1);
+  selected.node.remove();
+  selectActor(null);
+  $("add").focus({preventScroll:true});
+  updateCount();
+  announce("인물을 지웠어요.");
+}
+function refreshBackground(){back.innerHTML=backgrounds[$("background").value];}
+
+async function savePng(){
+  const button=$("save");
+  button.disabled=true;
+  announce("PNG를 만드는 중이에요.");
+  let svgUrl;
+  try{
+    const copy=stage.cloneNode(true);
+    copy.querySelector("#selection").remove();
+    copy.setAttribute("width",exportSize);
+    copy.setAttribute("height",exportSize);
+    svgUrl=URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(copy)],{type:"image/svg+xml;charset=utf-8"}));
+    const image=new Image();
+    image.src=svgUrl;
+    await image.decode();
+    const output=document.createElement("canvas");
+    output.width=exportSize;
+    output.height=exportSize;
+    output.getContext("2d").drawImage(image,0,0);
+    const blob=await new Promise(resolve=>output.toBlob(resolve,"image/png"));
+    if(!blob)throw new Error("PNG encoding failed");
+    if(exportUrl)URL.revokeObjectURL(exportUrl);
+    exportUrl=URL.createObjectURL(blob);
+    const link=document.createElement("a");
+    link.href=exportUrl;
+    link.download="나만의-풍속도.png";
+    document.body.append(link);
+    link.click();
+    link.remove();
+    announce("PNG 다운로드를 요청했어요. 브라우저의 다운로드 목록을 확인하세요.");
+  }catch(error){
+    console.error(error);
+    announce("PNG 저장에 실패했어요. 잠시 후 다시 눌러 주세요.");
+  }finally{
+    if(svgUrl)URL.revokeObjectURL(svgUrl);
+    button.disabled=false;
+  }
+}
+for(const [id,options] of [["pose",poses],["outfit",outfits]]){
+  for(const [value,item] of Object.entries(options))$(id).add(new Option(item.label,value));
+  $(id).addEventListener("change",changeAppearance);
+}
+$("assetNote").textContent="시험용 SVG 그림 · 인물 2종 · 동작 "+Object.keys(poses).length+"종 · 의상 "+Object.keys(outfits).length+"종";
+document.querySelectorAll('input[name="person"]').forEach(input=>input.addEventListener("change",changeAppearance));
+$("background").addEventListener("change",refreshBackground);
+$("add").addEventListener("click",()=>{
+  const i=(nextId-1)%12;
+  const actor=addActor(currentStyle(),205+(i%4)*164,460+Math.floor(i/4)*105);
+  activate(actor);
+  announce("인물을 추가했어요.");
+});
+$("flip").addEventListener("click",()=>{
+  selected.flip=!selected.flip;
+  setPosition(selected,selected.x,selected.y);
+  announce("인물의 방향을 뒤집었어요.");
+});
+$("front").addEventListener("click",()=>{
+  people.append(selected.node);
+  announce("선택한 인물을 맨 앞으로 옮겼어요.");
+});
+$("remove").addEventListener("click",removeActor);
+$("save").addEventListener("click",savePng);
+
+refreshBackground();
+addActor({person:"man",pose:"walk",outfit:"vest"},240,526);
+addActor({person:"woman",pose:"read",outfit:"skirt"},455,630);
+addActor({person:"man",pose:"phone",outfit:"white"},660,508);
+selectActor(null);
+syncPreview();
+announce("예시 인물 3명을 배치했어요. 클릭하면 수정할 수 있어요.");
+</script>
+</body>
+</html>
